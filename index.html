@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Serial Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>License Generator</h1>
+        <form id="licenseForm">
+            <select id="licenseType" required>
+                <option value="">Select a license type</option>
+                <option value="type1">Type 1</option>
+                <option value="type2">Type 2</option>
+            </select>
+            
+            <input type="text" id="serialNumber" placeholder="Enter serial number" required>
+            
+            <button type="submit">Generate</button>
+        </form>
+        
+        <div id="output" class="output-area"></div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

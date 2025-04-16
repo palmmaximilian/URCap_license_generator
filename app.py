@@ -190,8 +190,8 @@ with st.form("license_form"):
     # if submitted and license_type and serial:
     #     st.session_state.license_text = generate_license_key(license_type, serial)
     if submitted and license_type and serial:
-        st.session_state.license_text = generate_license(license_type, serial,"2026-12-31_00-00-00")
-        license_content = st.session_state.license_text
+        license_content = generate_license(license_type, serial,"2026-12-31_00-00-00")
+         
         # Send via email instead of offering download
         if send_license_email(serial, reference, license_type, license_content):
             st.success("License generated and sent to secure inbox!")
@@ -199,15 +199,3 @@ with st.form("license_form"):
             
             # No license shown/downloadable in UI
             st.info("Check your secure email for the license file")
-
-# Display and download outside the form
-if st.session_state.license_text:
-    st.code(st.session_state.license_text, language="text")
-    date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    fileLabel="license_"+serial+"_"+date_time+".lic"
-    st.download_button(
-        label="Download License",
-        data=st.session_state.license_text,
-        file_name=fileLabel,
-        mime="text/plain"
-    )

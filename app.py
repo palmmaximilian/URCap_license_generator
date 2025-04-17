@@ -16,23 +16,32 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
+import hmac
+import json
+from dateutil.relativedelta import relativedelta
+
 
 def generate_and_bundle_keys():
-    # Generate keys
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    public_key = private_key.public_key()
+
+
+    # Generate keys (same cryptographic material)
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
     
-    # Serialize keys
+    # Serialize in PKCS1 format for better compatibility
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,  # PKCS1
         encryption_algorithm=serialization.NoEncryption()
     )
     
-    public_pem = public_key.public_bytes(
+    public_pem = private_key.public_key().public_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.PKCS1  # PKCS1 instead of SubjectPublicKeyInfo
     )
+    
     
     # Create in-memory zip file
     zip_buffer = io.BytesIO()
@@ -43,15 +52,7 @@ def generate_and_bundle_keys():
     zip_buffer.seek(0)
     
     return zip_buffer
-import hashlib
-import hmac
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import serialization
-import json
-import base64
-import datetime
-from dateutil.relativedelta import relativedelta
+
 
 def generate_license(license_type, serial, expiration_date):
     """
@@ -66,7 +67,9 @@ def generate_license(license_type, serial, expiration_date):
         JSON string containing signed license data
     """
     # Load private key securely from Streamlit secrets
-    private_key_pem = st.secrets["keys"][f"SECRET_{license_type.upper()}"]    
+    private_key_pem = st.secrets["keys"][f"SECRET_{license_type.upper()}"]
+ 
+
     if not private_key_pem:
         raise ValueError(f"No private key found for license type {license_type}")
 
@@ -75,12 +78,12 @@ def generate_license(license_type, serial, expiration_date):
             private_key_pem.encode(),
             password=None
         )
+        public_key = private_key.public_key()
     except Exception as e:
         raise ValueError(f"Failed to load private key: {str(e)}")
 
-
     # Build license data with multiple time references
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d_%H:%M:%S")
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
     license_data = {
         "robot_serial_number": serial,
         "issue_date": now,
@@ -91,29 +94,36 @@ def generate_license(license_type, serial, expiration_date):
         }
     }
 
-    # Create signature with additional context
-    signing_payload = {
-        "data": license_data
-    }
-    
-    payload_json = json.dumps(signing_payload, sort_keys=True).encode('utf-8')
-    
+    payload_json = json.dumps(license_data, 
+        sort_keys=True,
+        separators=(',', ':')  # Removes all whitespace
+    ).encode('utf-8')
+
     try:
         signature = private_key.sign(
             payload_json,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
+            padding.PKCS1v15(),  # Changed from PSS to PKCS#1 v1.5
             hashes.SHA256()
         )
     except Exception as e:
         raise ValueError(f"Signing failed: {str(e)}")
 
+    # Immediate verification
+    try:
+        public_key.verify(
+            signature,
+            payload_json,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+        print("✅ Signature verified successfully")
+    except Exception as e:
+        raise ValueError(f"🚨 Signature verification failed: {str(e)}")
+
     # Build final license structure
     license = {
         "schema_version": "2.0",
-        "data": license_data,
+        "data": json.loads(payload_json),
         "signature": base64.b64encode(signature).decode('utf-8')
     }
 
@@ -187,10 +197,9 @@ with st.form("license_form"):
 
     submitted = st.form_submit_button("Generate")
     
-    # if submitted and license_type and serial:
-    #     st.session_state.license_text = generate_license_key(license_type, serial)
     if submitted and license_type and serial:
         license_content = generate_license(license_type, serial,"2026-12-31_00-00-00")
+
          
         # Send via email instead of offering download
         if send_license_email(serial, reference, license_type, license_content):

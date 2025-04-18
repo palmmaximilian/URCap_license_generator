@@ -193,12 +193,11 @@ with st.form("license_form"):
     reference= st.text_input("Reference")
 
     end_date = st.date_input("Expiration Date", value=datetime.datetime.now() + relativedelta(years=100), max_value= datetime.datetime.now() + relativedelta(years=100),format="YYYY-MM-DD", label_visibility="visible")
-    # end_date = st.date_input("Expiration Date",format="YYYY-MM-DD", label_visibility="visible")
 
     submitted = st.form_submit_button("Generate")
     
     if submitted and license_type and serial:
-        license_content = generate_license(license_type, serial,"2026-12-31_00-00-00")
+        license_content = generate_license(license_type, serial,end_date.strftime("%Y-%m-%d_%H-%M-%S"))
 
          
         # Send via email instead of offering download

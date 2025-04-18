@@ -192,7 +192,7 @@ with st.form("license_form"):
     serial = st.text_input("Serial Number")
     reference= st.text_input("Reference")
 
-    end_date = st.date_input("Expiration Date", value=datetime.datetime.now() + relativedelta(years=100), min_value="today", max_value= datetime.datetime.now() + relativedelta(years=100),format="YYYY-MM-DD", label_visibility="visible")
+    end_date = st.date_input("Expiration Date", value=datetime.datetime.now() + relativedelta(years=100), max_value= datetime.datetime.now() + relativedelta(years=100),format="YYYY-MM-DD", label_visibility="visible")
     # end_date = st.date_input("Expiration Date",format="YYYY-MM-DD", label_visibility="visible")
 
     submitted = st.form_submit_button("Generate")

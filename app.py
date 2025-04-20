@@ -160,13 +160,13 @@ def send_license_email(serial_number, reference,product, license_content):
         st.error(f"Failed to send license: {e}")
         return False
 
-# Streamlit UI
-st.title("🔑 License Generator")
+
 
 # Initialize session state
 if 'license_text' not in st.session_state:
     st.session_state.license_text = None
 
+st.title("🛠️ Key Pair Generator")
 
 if st.button("Generate Key Pair"):
     zip_buffer = generate_and_bundle_keys()
@@ -179,7 +179,12 @@ if st.button("Generate Key Pair"):
         file_name="key_pair.zip",
         mime="application/zip"
     )
-    
+
+st.markdown("---")
+
+st.title("📄 License Generator")
+
+
 
 # Form for input
 with st.form("license_form"):

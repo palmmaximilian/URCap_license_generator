@@ -185,7 +185,7 @@ if st.button("Generate Key Pair"):
 with st.form("license_form"):
     license_type = st.selectbox(
         "License Type",
-        options=["BarcodeLoader", "FeatureFinder"],
+        options=["ScanPilot", "FeatureFinder"],
         index=0
     )
 

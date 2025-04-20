@@ -207,3 +207,47 @@ with st.form("license_form"):
             
             # No license shown/downloadable in UI
             st.info("Check your secure email for the license file")
+st.markdown("---")
+st.header("🔍 Validate Existing License")
+
+uploaded_license = st.file_uploader("Upload license file (.lic)", type=["lic"])
+validation_license_type = st.selectbox(
+    "License Type for Validation",
+    options=["ScanPilot", "FeatureFinder"],
+    index=0,
+    key="validation_type"
+)
+
+if uploaded_license:
+    try:
+        license_content = uploaded_license.read().decode("utf-8")
+        license_json = json.loads(license_content)
+
+        # Extract the signature and payload
+        signature = base64.b64decode(license_json["signature"])
+        payload_json = json.dumps(
+            license_json["data"],
+            sort_keys=True,
+            separators=(',', ':')
+        ).encode("utf-8")
+
+        # Load private key from secrets, then extract public key
+        private_key_pem = st.secrets["keys"][f"SECRET_{validation_license_type.upper()}"]
+        private_key = serialization.load_pem_private_key(
+            private_key_pem.encode(), password=None
+        )
+        public_key = private_key.public_key()
+
+        # Verify signature
+        public_key.verify(
+            signature,
+            payload_json,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+
+        st.success("✅ License is valid and untampered.")
+        st.json(license_json["data"])
+
+    except Exception as e:
+        st.error(f"🚨 License validation failed: {str(e)}")

@@ -151,7 +151,7 @@ st.markdown("---")
 st.title("📄 License Generator")
 
 with st.form("license_form"):
-    license_type = st.selectbox("License Type", options=["ScanPilot", "MultiVsion","FeatureFinder"], index=0)
+    license_type = st.selectbox("License Type", options=["ScanPilot", "MultiVision","FeatureFinder"], index=0)
 
     hardware_type = st.selectbox("License is bound to...", options=["Robot Serial", "USB Serial"], index=0)
     serial_label = "Robot Serial Number" if hardware_type == "Robot Serial" else "USB Stick Serial Number"
@@ -179,7 +179,7 @@ st.markdown("---")
 st.header("🔍 Validate Existing License")
 
 uploaded_license = st.file_uploader("Upload license file (.lic)", type=["lic"])
-validation_license_type = st.selectbox("License Type for Validation", options=["ScanPilot", "Multivision","FeatureFinder"], index=0, key="validation_type")
+validation_license_type = st.selectbox("License Type for Validation", options=["ScanPilot", "MultiVision","FeatureFinder"], index=0, key="validation_type")
 
 if uploaded_license:
     try:

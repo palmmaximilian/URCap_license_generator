@@ -20,6 +20,8 @@ import hmac
 import json
 from dateutil.relativedelta import relativedelta
 
+st.set_page_config(page_title="URCap License Generator", page_icon="🛠️")
+
 def generate_and_bundle_keys():
     private_key = rsa.generate_private_key(
         public_exponent=65537,

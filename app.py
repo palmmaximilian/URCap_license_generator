@@ -160,9 +160,9 @@ with st.form("license_form"):
     serial = st.text_input(serial_label)
 
     reference = st.text_input("Reference")
-    # Replace date_input with a text_input prefilled with current date in correct format (YYYY-MM-DD only)
-    default_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    end_date_str = st.text_input("Expiration Date (YYYY-MM-DD)", value=default_date)
+    # Replace date_input with a text_input prefilled with current date in correct format (YYYY-MM-DD_00-00-00)
+    default_date = datetime.datetime.now().strftime("%Y-%m-%d_00-00-00")
+    end_date_str = st.text_input("Expiration Date (YYYY-MM-DD_00-00-00)", value=default_date)
 
     submitted = st.form_submit_button("Generate")
 
